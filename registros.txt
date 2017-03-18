@@ -1,0 +1,54 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+entity Reg is port(
+
+	cd,ci,clk,clr: in std_logic;
+	--control de llenado con ceros y unos: control
+	sel:in std_logic_vector (1 downto 0);
+	dato: in std_logic_vector (9 downto 0);
+	q: inout std_logic_vector (9 downto 0));
+
+	attribute loc: string;
+	
+	--attribute loc of ctrl: signal is "p66";-- control
+        attribute loc of cd: signal is "p4";
+	attribute loc of ci: signal is "p5";
+	attribute loc of clk: signal is "p6";
+	attribute loc of clr: signal is "p7";
+	attribute loc of sel: signal is "p28,29";
+	attribute loc of dato: signal is "p125,p124,p123,p122,p121,p120,p116,p115,p114,p113";
+	attribute loc of q: signal is "p98,p97,p96,p95,p94,p93,p88,p87,p86,p85";
+	
+end;
+
+architecture Reg_A of Reg is
+begin
+	process(clr,clk,sel)
+	begin
+	if(clr='0')then --if 1
+	q<="0000000000";
+	elsif(clk'event and clk='1') then
+	for i in 0 to 9 loop
+	case sel is
+	when "00"=>q(i)<=q(i);
+	when "01"=>q(i)<=dato(i);
+	when "10"=>
+		if (i=0) then
+		q(i)<=cd;
+		else
+		q(i)<=q(i-1);
+		end if;
+	when others=>
+		if(i=2) then
+			q(i)<=ci;
+		else
+			q(i)<=q(i+1);
+	end if;		
+	end case;
+	end loop;
+	end if;		
+	end process;
+end Reg_A;
