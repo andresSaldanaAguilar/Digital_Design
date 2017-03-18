@@ -42,7 +42,7 @@ begin
 		q(i)<=q(i-1);
 		end if;
 	when others=>
-		if(i=2) then
+		if(i=9) then
 			q(i)<=ci;
 		else
 			q(i)<=q(i+1);
