@@ -6,15 +6,13 @@ use ieee.std_logic_unsigned.all;
 entity Reg is port(
 
 	cd,ci,clk,clr: in std_logic;
-	--control de llenado con ceros y unos: control
 	sel:in std_logic_vector (1 downto 0);
 	dato: in std_logic_vector (9 downto 0);
 	q: inout std_logic_vector (9 downto 0));
 
 	attribute loc: string;
 	
-	--attribute loc of ctrl: signal is "p66";-- control
-        attribute loc of cd: signal is "p4";
+	attribute loc of cd: signal is "p4";
 	attribute loc of ci: signal is "p5";
 	attribute loc of clk: signal is "p6";
 	attribute loc of clr: signal is "p7";
@@ -46,9 +44,9 @@ begin
 			q(i)<=ci;
 		else
 			q(i)<=q(i+1);
-	end if;		
+		end if;
 	end case;
 	end loop;
-	end if;		
+	end if;
 	end process;
 end Reg_A;
