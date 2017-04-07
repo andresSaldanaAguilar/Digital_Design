@@ -6,92 +6,54 @@ use ieee.std_logic_unsigned.all;
 entity contador is
 
 port( 
-	ctrl: in std_logic_vector (2 downto 0);
+	control: in std_logic;
 	CLK,CLR: in std_logic;
-	q: inout std_logic_vector (2 downto 0); 												--qa,qb,qc
-	JKa,JKb,JKc: inout std_logic_vector (1 downto 0));										--ja,ka,jb,kb,jc,kc
+	outputq: out std_logic_vector (9 downto 0));
+	--Usar bits, para hacer una converción de std_logic a un bit 													
 	
 	--Puertos 
 	attribute loc: string;
-	attribute loc of ctrl: signal is "p4";
+	attribute loc of control: signal is "p4";
 	attribute loc of CLK: signal is "p5";
 	attribute loc of CLR: signal is "p6";
-	attribute loc of q: signal is "p28,p29,p30";
-	attribute loc of JKa: signal is "p125,p124,p123";
-	attribute loc of JKb: signal is "p122,p121,p120";
-	attribute loc of JKc: signal is "p98,p97,p96";
+	attribute loc of outputq: signal is "p125,p124,p123,p122,p121,p98,p97,p96,p95,p94";
+
 
 end;
 
 architecture a_contador of contador is
 begin
-
-	
-	process(ctrl,CLR,CLK,JKa,JKb,JKc,q)
-	begin
-		JKa(0)<=(ctrl and (not q(1)) and (not q(2))) or ((not ctrl) and q(1) and q(2)); --ja
-		JKa(1)<=ctrl and (not(q(1)) and not(q(2)))) or (not(ctrl) and (q(1) and q(2));	--ka
-		JKb(0)<=ctrl xor q(2);															--jb
-		JKb(1)<=ctrl xor q(2);															--kb
-		JKc(0)<='1';																	--jc
-		JKc(1)<='1';																	--kc
+	process(control,CLR,CLK)
+	variable q,jk: std_logic_vector(9 downto 0);
+	begin																
 	-------------------------------------------------ff1
 		if(CLR='0') then
-			Q(0)<='0';
-			--NotQ(0) <= '1';
+			q:="0000000000";
 		elsif(CLK'EVENT AND CLK='1') then
-			if(JKa="00") then
-				Q(0)<= Q(0);
-				--NotQ(0) <= not Q(0);
-			elsif(JKa="01") then
-				Q(0)<= '0';
-				--NotQ(0) <= '1';
-			elsif(JKa="10") then
-				Q(0)<= '1';
-				--NotQ(0) <= '0';
-			elsif(JKa="11")  then
-				Q(0) <= not Q(0);
-				--NotQ(0) <= Q(0);
-			end if;
-		end if;
-	-------------------------------------------------ff2
-		if(CLR='0') then
-			Q(1)<='0';
-			--NotQ(1) <= '1';
-		elsif(CLK'EVENT AND CLK='1') then
-			if(JKb="00") then
-				Q(1)<= Q(1);
-				--NotQ(1) <= not Q(1);
-			elsif(JKb="01") then
-				Q(1)<= '0';
-				--NotQ(1) <= '1';
-			elsif(JKb="10") then
-				Q(1)<= '1';
-				--NotQ(1) <= '0';
-			elsif(JKb="11")  then
-				Q(1) <= not Q(1);
-				--NotQ(1) <= Q(1);
-			end if;
-		end if;
-	------------------------------------------------ff3
-		if(CLR='0') then
-			Q(2)<='0';
-			--NotQ(2) <= '1';
-		elsif(CLK'EVENT AND CLK='1') then
-			if(JKc="00") then
-				Q(2)<= Q(2);
-				--NotQ(2) <= not Q(2);
-			elsif(JKc="01") then
-				Q(2)<= '0';
-				--NotQ(2) <= '1';
-			elsif(JKc="10") then
-				Q(2)<= '1';
-				--NotQ(2) <= '0';
-			elsif(JKc="11")  then
-				Q(2) <= not Q(2);
-				--NotQ(2) <= Q(2);
-			end if;
+			
+			--Ecuaciones
+
+			jk(9):=(control and not(q(8)) and not(q(7)) and not(q(6)) and not(q(5)) and not(q(4)) and not(q(3)) and not(q(2)) and not(q(1)) and not(q(0))) or (not (control) and q(8) and q(7) and q(6) and q(5) and q(4) and q(3) and q(2) and q(1) and q(0));
+			jk(8):=(control and not(q(7)) and not(q(6)) and not(q(5)) and not(q(4)) and not(q(3)) and not(q(2)) and not(q(1)) and not(q(0))) or (not (control) and q(7) and q(6) and q(5) and q(4) and q(3) and q(2) and q(1) and q(0));
+			jk(7):=(control and not(q(6)) and not(q(5)) and not(q(4)) and not(q(3)) and not(q(2)) and not(q(1)) and not(q(0))) or (not (control) and q(6) and q(5) and q(4) and q(3) and q(2) and q(1) and q(0));			
+			jk(6):=(control and not(q(5)) and not(q(4)) and not(q(3)) and not(q(2)) and not(q(1)) and not(q(0))) or (not (control) and q(5) and q(4) and q(3) and q(2) and q(1) and q(0));
+			jk(5):=(control and not(q(4)) and not(q(3)) and not(q(2)) and not(q(1) and not q(0))) or (not (control) and q(4) and q(3) and q(2) and q(1) and q(0));
+			jk(4):=(control and not(q(3)) and not(q(2)) and not(q(1)) and not(q(0))) or (not (control) and q(3) and q(2) and q(1) and q(0));
+			jk(3):=(control and not(q(2)) and not(q(1)) and not(q(0))) or (not (control) and q(2) and q(1) and q(0));
+			jk(2):=(control and not(q(1)) and not(q(0))) or (not (control) and q(1) and q(0));
+			jk(1):=(control xor q(0));
+			jk(0):='1';
+			
+			--Logica de el ff(son 3 en total)
+
+			for i in 0 to 9 loop
+				if (jk(i)='0') then
+					q(i):=q(i);
+				else
+					q(i):=not(q(i));
+				end if;
+			end loop;
+			outputq<=q; 
 		end if;
 	end process;
-end a_contador;
-
+end a_contador;--
