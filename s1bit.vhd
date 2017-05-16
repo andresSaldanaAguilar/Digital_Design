@@ -5,10 +5,11 @@ use ieee.std_logic_unsigned.all;
 
 entity d is port(
 	sel,cd,clk,clr: in std_logic;
-	s: inout std_logic;
+	d,q,s: inout std_logic;
 	datoA,datoB: in std_logic_vector (3 downto 0);
 	qA,qB: inout std_logic_vector (3 downto 0);--registros
-	salida: inout std_logic_vector(3 downto 0));--salida finales
+	salida: out std_logic_vector(3 downto 0);--salida finales
+	carry: out std_logic);
 
 	attribute loc: string;
 	
@@ -21,9 +22,12 @@ entity d is port(
 	attribute loc of qA: signal is "p28,p29,p30,p31";
 	attribute loc of qB: signal is "p33,p39,p40,p41S";
 	attribute loc of salida: signal is "p96,p95,p94,p93";
+	attribute loc of carry: signal is "p113";
+	
 end;
 
 architecture behavioral of d is
+signal contador:integer range 0 to 4;
 begin
 	--registro A
 	process(clr,clk,sel,qA,qB,datoA)
@@ -66,46 +70,39 @@ begin
 	end process;
 
 	--sumador
-	process(clr,clk,sel)
-		variable d,q: std_logic;--variables de e/s y carry
+	process(clr,clk,sel,qA,qB)
 		begin
 
 		if(clr='0')then --if 1
 		s<='0';
+		q<='0';
 		elsif(clk'event and clk='1') then
 
 		--Ecuaciones
-		d:=(qA(0) and qB(0)) or (qA(0) and q) or (qB(0) and q);
+		d<=(qA(0) and qB(0)) or (qA(0) and q) or (qB(0) and q);
 		s<=qA(0) xor qB(0) xor q;
 
-		for i in 0 to 3 loop
-			--Logica de el ff(son 3 en total)
+			--Logica de el ff
 			if (d='0') then
-			q:=q;
+			q<=q;
 			else
-			q:=not(q);
+			q<=not(q);
 			end if;
-			--fin ff
-		end loop;		
+			--fin ff			
 		end if;
 	end process;
 
 	--registro que muestra resultado
-	
-	process(clr,clk,sel)
+	process(clr,clk,sel,s,q,contador)
+  		
 		begin
 		if(clr='0')then --if 1
 		salida<="0000";
+		carry<='0';
 		elsif(clk'event and clk='1') then
-		for i in 0 to 3 loop
-			salida(i)<=s;
---			if (i=3) then
---			salida(i)<=s;
---			else
---			salida(i)<=salida(i+1);
---			salida(i)<=s;
---			end if;
-		end loop;
+			salida(contador)<=s;
+			contador<=contador+1;
+			carry<=q;	
 		end if;
 	end process;
 
