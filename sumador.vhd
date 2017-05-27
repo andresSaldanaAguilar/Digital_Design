@@ -5,7 +5,7 @@ use ieee.std_logic_unsigned.all;
 
 entity sumador is port(
 	sel,cd,clk,clr: in std_logic;
-	stop,d,q,s: inout std_logic;
+	stop,d,q,s,mibA,mibB: inout std_logic;
 	datoA,datoB: in std_logic_vector (3 downto 0);
 	qA,qB: inout std_logic_vector (3 downto 0);--registros
 	salida: inout std_logic_vector(3 downto 0);--salida finales
@@ -28,7 +28,6 @@ entity sumador is port(
 end;
 
 architecture ar_sumador of sumador is
-signal contador:integer range 0 to 4;
 begin
 	--registro A
 	process(clr,clk,sel,qA,qB,datoA)
@@ -36,6 +35,7 @@ begin
 		if(clr='0')then
 			qA<="0000";
 		elsif(clk'event and clk='1') then
+		mibA<=qA(0);
 			for i in 0 to 3 loop
 			case sel is
 			when '0'=>qA(i)<=datoA(i);
@@ -47,6 +47,7 @@ begin
 				end if;
 			end case;
 			end loop;
+		
 		end if;
 	end process;
 
@@ -56,65 +57,70 @@ begin
 		if(clr='0')then --if 1
 		qB<="0000";
 		elsif(clk'event and clk='1') then
-		for i in 0 to 3 loop
-		case sel is
-		when '0'=>qB(i)<=datoB(i);
-		when others=>
-			if (i=3) then
-			qB(i)<=cd;
-			else
-			qB(i)<=qB(i+1);
-			end if;
-		end case;
-		end loop;
+		mibB<=qB(0);
+			for i in 0 to 3 loop
+			case sel is
+			when '0'=>qB(i)<=datoB(i);
+			when others=>
+				if (i=3) then
+				qB(i)<=cd;
+				else
+				qB(i)<=qB(i+1);
+				end if;
+			end case;
+			end loop;
 		end if;
 	end process;
 
 	--sumador
-	process(clr,clk,sel,qA,qB,q,d,s)
+	process(clr,clk,sel,mibA,mibB)
 		begin
-
 		if(clr='0')then --if 1
-		s<='0';
 		q<='0';
 		elsif(clk'event and clk='1') then
-
+		if(sel='0')then
+		--controla el que no entre el 1er bit sin llamrlo
+		d<='0';
+		s<='0';
+		else
 		--Ecuaciones
-		d<=(((qA(0))and(qB(0)))or((qA(0))and(q))or((qB(0))and(q)));
-		s<=(qA(0) xor qB(0) xor q);
-
+		d<=(((mibA)and(mibB))or((mibA)and(q))or((mibB)and(q)));
+		s<=(mibA xor mibB xor q);
 			--Logica de el ff
 			if (d='0') then
-			q<='0';
+			q<=q;
 			else
-			q<='1';
+			q<=not (q);
 			end if;
-			--fin ff		
+			--fin ff
+		end if;		
 		end if;
 	end process;
 
 	--registro que muestra resultado
-	process(clr,clk,s,q,contador,stop,salida)
+	process(clr,clk,s,q,stop,salida)
 		begin
 		if(clr='0')then --if 1
 		salida<="0000";
 		carry<='0';
-					
+				
 		elsif(clk'event and clk='1') then
-			for j in 0 to 3 loop
 			carry<=q;
+			salida(3)<=s;
+			for j in 0 to 3 loop
 			case stop is
 			when '1'=>salida(j)<=salida(j);
+					carry<=carry;
 			when others=>
+				--controlandoel carry			
 				if (j=3) then
-				salida(3)<=s;
-				else
+				salida(j)<=s;			
+				else				
 				salida(j)<=salida(j+1);
 				end if;
-				
 			end case;
-			end loop;
-		end if;
+			end loop;		
+end if;
 	end process;
 
 end ar_sumador;
