@@ -6,9 +6,18 @@ use ieee.std_logic_unsigned.all;
 entity dp is port(
 	clk: in std_logic;
 	X:in std_logic_vector(1 downto 0);
+	-- unidades
+	unidades: out STD_LOGIC_VECTOR(3 downto 0);
+	-- decenas
+	decenas: out STD_LOGIC_VECTOR(3 downto 0);
+	-- display unidades
+	displayu: out STD_LOGIC_VECTOR(6 downto 0);
+	-- display decenas
+	displayd: out STD_LOGIC_VECTOR(6 downto 0);
+	-- salidas a transistores
+	trans1,trans2: inout std_logic;
 	salida: inout std_logic_vector(7 downto 0));
-	-- Displays es de 8 bits, 4 por cada display, ya que solo es hasta el 99
-	displays: out STD_LOGIC_VECTOR(7 downto 0)
+	
 
 	attribute loc: string;
 	
@@ -20,6 +29,19 @@ entity dp is port(
 end;
 
 architecture a_dp of dp is
+	--Constantes para los displays
+	constant DIG0: std_logic_vector (6 downto 0):="0000001";--0
+	constant DIG1: std_logic_vector (6 downto 0):="1001111";--1
+	constant DIG2: std_logic_vector (6 downto 0):="0010010";--2
+	constant DIG3: std_logic_vector (6 downto 0):="0000110";--3
+	constant DIG4: std_logic_vector (6 downto 0):="1001100";--4
+	constant DIG5: std_logic_vector (6 downto 0):="0100100";--5
+	constant DIG6: std_logic_vector (6 downto 0):="0100000";--6
+	constant DIG7: std_logic_vector (6 downto 0):="0001111";--7
+	constant DIG8: std_logic_vector (6 downto 0):="0000000";--8
+	constant DIG9: std_logic_vector (6 downto 0):="0000100";--9
+	constant DIGERROR: std_logic_vector (6 downto 0):="0110000";
+
 	type estados is(A,B,C,D,E);
 	signal edo_presente,edo_futuro:estados;	
 	begin
@@ -108,7 +130,54 @@ architecture a_dp of dp is
 				aux(15 downto 1) := aux(14 downto 0);
 		end loop;
 		--Pasando datos de variable aux a la correspondiente salida.
-		displays <= aux(15 downto 8);
+		decenas <= aux(15 downto 12);
+		unidades <= aux(11 downto 8);
 	end process convertidor;
-	end a_dp;
+
+	--Proceso para que se prendan los displays
+	pren_dis:process(unidades,decenas)
+	begin
+		--Primer transistor para unidades
+		if (unidades=="0000") then
+			--Si no hay unidades no prendemos ese display
+			trans1<='0';
+		else
+			trans1<='1';
+		end if;
+		-- Segundo transistor para decenas
+		if decenas=="0000" then
+			--Si no hay decenas entonces no prendemos ese display
+			trans2<='0';
+		else 
+			trans2<='1';
+		end if;
+		--Cases para cada display
+		case unidades is
+			when "0000"=>displayu<=DIG0;
+			when "0001"=>displayu<=DIG1;
+			when "0010"=>displayu<=DIG2;
+			when "0011"=>displayu<=DIG3;
+			when "0100"=>displayu<=DIG4;
+			when "0101"=>displayu<=DIG5;
+			when "0110"=>displayu<=DIG6;
+			when "0111"=>displayu<=DIG7;
+			when "1000"=>displayu<=DIG8;
+			when "1001"=>displayu<=DIG9;
+			when others =>displayu<=DIGERROR;
+		end case;
+		case decenas is
+			when "0000"=>displayd<=DIG0;
+			when "0001"=>displayd<=DIG1;
+			when "0010"=>displayd<=DIG2;
+			when "0011"=>displayd<=DIG3;
+			when "0100"=>displayd<=DIG4;
+			when "0101"=>displayd<=DIG5;
+			when "0110"=>displayd<=DIG6;
+			when "0111"=>displayd<=DIG7;
+			when "1000"=>displayd<=DIG8;
+			when "1001"=>displayd<=DIG9;
+			when others =>displayd<=DIGERROR;
+		end case ;
+	end process pren_dis;
+end a_dp;
 
